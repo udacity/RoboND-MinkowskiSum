@@ -119,9 +119,7 @@ int main()
     vector<vector<int> > A(3, vector<int>(2));
     A = {{ 1, 0 }, { 0, 1 }, { 0, -1 },};
     vector<vector<int> > B(3, vector<int>(2));
-    B = {
-        { 0, 0 }, { 1, 1 }, { 1, -1 },
-    };
+    B = {{ 0, 0 }, { 1, 1 }, { 1, -1 },};
 
     // Compute the minkowski sum of triangle A and B
     vector<vector<int> > C;
