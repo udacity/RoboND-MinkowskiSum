@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include "src/matplotlibcpp.h"
+#include <math.h>
 
 using namespace std;
 namespace plt = matplotlibcpp;
@@ -21,7 +22,7 @@ void print2DVector(vector<vector<double> > vec)
     }
 }
 
-// Check for duplicate inside a 2D vector and delete them
+// Check for duplicate coordinates inside a 2D vector and delete them
 vector<vector<double> > delete_duplicate(vector<vector<double> > C)
 {
     // Sort the C vector
@@ -54,41 +55,91 @@ vector<vector<double> > minkowski_sum(vector<vector<double> > A, vector<vector<d
     return C;
 }
 
-// Workout the combination: http://rosettacode.org/wiki/Combinations#C.2B.2B
-vector<vector<double> > generate_combinations(int N)
+// Compute the centroid of a polygon
+vector<double> compute_centroid(vector<vector<double> > vec)
 {
-    int K = 2;
-    vector<vector<double> > comb;
-    std::string bitmask(K, 1); // K leading 1's
-    bitmask.resize(N, 0); // N-K trailing 0's
-
-    // print integers and permute bitmask
-    do {
-        vector<double> combi = { 0, 0 };
-        int j = 0;
-        for (int i = 0; i < N; ++i) // [0..N-1] integers
-        {
-            if (bitmask[i]) {
-                combi[j] = i;
-                j++;
-            }
-        }
-        comb.push_back(combi);
-    } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
-
-    return comb;
+    vector<double> centroid(2);
+    double centroid_x, centroid_y;
+    for (int i = 0; i < vec.size(); i++) {
+        centroid_x += vec[i][0];
+        centroid_y += vec[i][1];
+    }
+    centroid[0] = centroid_x / vec.size();
+    centroid[1] = centroid_y / vec.size();
+    return centroid;
 }
 
-// Process the combinations of a shape and plot its coordinates
+// Compute the angle of each point with respect to the centroid and append in a new column
+// Resulting vector[xi,yi,anglei]
+vector<vector<double> > compute_angle(vector<vector<double> > vec)
+{
+    vector<double> centroid = compute_centroid(vec);
+    double prec = 0.0001;
+    for (int i = 0; i < vec.size(); i++) {
+        double dy = vec[i][1] - centroid[1];
+        double dx = vec[i][0] - centroid[0];
+        // If the point is the centroid then delete it from the vector
+        if (abs(dx) < prec && abs(dy) < prec) {
+            vec.erase(vec.begin() + i);
+        }
+        else {
+            // compute the centroid-point angle
+            double theta = (atan2(dy, dx) * 180) / M_PI;
+            // append it to the vector in a 3rd column
+            vec[i].push_back(theta);
+        }
+    }
+    return vec;
+}
+
+// Sort the vector in increasing angle (clockwise) for plotting
+vector<vector<double> > sort_vector(vector<vector<double> > vec)
+{
+    vector<vector<double> > sorted_vec = compute_angle(vec);
+    // Change the 0 angle to 90 degrees
+    for (int i = 0; i < sorted_vec.size(); i++) {
+        if (sorted_vec[i][2] == 0)
+            sorted_vec[i][2] = 90.0;
+    }
+    // Sort with respect to the 3rd column(angles)
+    sort(sorted_vec.begin(),
+        sorted_vec.end(),
+        [](const vector<double>& a, const vector<double>& b) {
+            return a[2] < b[2];
+        });
+    return sorted_vec;
+}
+
+// Process the shapes and plot them
 void plot(vector<vector<double> > vec, string color)
 {
-
-    vector<vector<double> > comb;
-    comb = generate_combinations(vec.size());
-    for (int i = 0; i < comb.size(); i++) {
-        if (abs(vec[comb[i][0]][1] - vec[comb[i][1]][1]) <= 2 && abs(vec[comb[i][0]][0] - vec[comb[i][1]][0]) <= 1)
-            plt::plot({ vec[comb[i][0]][0], vec[comb[i][1]][0] }, { vec[comb[i][0]][1], vec[comb[i][1]][1] }, color);
+    // Sort the vector coordinates in clockwise
+    vector<vector<double> > sorted_vec;
+    sorted_vec = sort_vector(vec);
+    // Add the first element to the end of the vector
+    sorted_vec.push_back(sorted_vec[0]);
+    // Loop through vector original size
+    for (int i = 0; i < sorted_vec.size() - 1; i++) {
+        // Connect coordinate point and plot the lines (x1,x2)(y1,y2)
+        plt::plot({ sorted_vec[i][0], sorted_vec[i + 1][0] }, { sorted_vec[i][1], sorted_vec[i + 1][1] }, color);
     }
+}
+
+// Translate the configuration space toward the obstacle
+vector<vector<double> > shift_space(vector<vector<double> > B, vector<vector<double> > C)
+{
+    // Compute the obstacle and space centroids
+    vector<double> centroid_obstacle = compute_centroid(B);
+    vector<double> centroid_space = compute_centroid(C);
+    // Compute the translations deltas
+    double dx = centroid_space[0] - centroid_obstacle[0];
+    double dy = centroid_space[1] - centroid_obstacle[1];
+    // Translate the space
+    for (int i = 0; i < C.size(); i++) {
+        C[i][0] = C[i][0] - dx;
+        C[i][1] = C[i][1] - dy;
+    }
+    return C;
 }
 
 // Draw A, B and C shapes
@@ -100,15 +151,19 @@ void draw_shapes(vector<vector<double> > A, vector<vector<double> > B, vector<ve
     plt::ylim(-5, 5);
     plt::grid(true);
 
-    // Draw configuration space C
-    plot(C, "g-");
-
     // Draw triangle A
     plot(A, "b-");
 
     // Draw triangle B
     plot(B, "r-");
 
+    // Draw configuration space C
+    // Trasnlate the C space
+    vector<vector<double> > shifted_C = shift_space(B, C);
+    plot(shifted_C, "y-");
+    // Plot the original C shape
+    plot(C, "g-");
+    
     //Save the image and close the plot
     plt::save("./Images/Minkowski_Sum.png");
     plt::clf();
@@ -118,14 +173,19 @@ int main()
 {
     // Define the coordinates of triangle A and B in 2D vectors
     vector<vector<double> > A(3, vector<double>(2));
+    // Robot A
     A = {
-        { 1, 0 }, { 0, 1 }, { 0, -1 },
+        { 0, -1 }, { 0, 1 }, { 1, 0 },
     };
     vector<vector<double> > B(3, vector<double>(2));
+    // Obstacle B
     B = {
         { 0, 0 }, { 1, 1 }, { 1, -1 },
     };
-
+    
+    // Translating Robot toward the obstacle
+    A=shift_space(B,A);
+    
     // Compute the Minkowski Sum of triangle A and B
     vector<vector<double> > C;
     C = minkowski_sum(A, B);
@@ -135,7 +195,6 @@ int main()
 
     // Draw all the shapes
     draw_shapes(A, B, C);
-
+    
     return 0;
 }
-
