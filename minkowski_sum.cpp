@@ -59,7 +59,7 @@ vector<vector<double> > minkowski_sum(vector<vector<double> > A, vector<vector<d
 vector<double> compute_centroid(vector<vector<double> > vec)
 {
     vector<double> centroid(2);
-    double centroid_x, centroid_y;
+    double centroid_x=0, centroid_y=0;
     for (int i = 0; i < vec.size(); i++) {
         centroid_x += vec[i][0];
         centroid_y += vec[i][1];
