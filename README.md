@@ -5,7 +5,7 @@ Inflate any obstacle and generate its configuration space using the Minkowski Su
 
 ### Example:
 Generating the configuration space of the blue Robot and red Obstacle
-![alt text](Images/Initial.png)
+![alt text](Images/Minkowski_Sum_Initial.png)
 
 ### Compiling:
 ```sh
