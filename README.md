@@ -1,8 +1,7 @@
 [![Udacity - Robotics NanoDegree Program](https://s3-us-west-1.amazonaws.com/udacity-robotics/Extra+Images/RoboND_flag.png)](https://www.udacity.com/robotics)
 
 # RoboND-MinkowskiSum
-Inflate any obstacle and generate its configuration space using the Minkowski Sum:
-A+B=\{\mathbf {a} +\mathbf {b} \,|\,\mathbf {a} \in A,\ \mathbf {b} \in B\}.
+Inflate any obstacle and generate its configuration space using the Minkowski Sum.
 
 ### Example:
 Generating the configuration space of the blue Robot and red Obstacle
