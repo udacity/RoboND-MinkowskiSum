@@ -22,6 +22,6 @@ $ ./app
 Ignore the matplotlib error 
 
 ### Generated Configuration Space:
-This program will first translate the blue robot position to the red obstacle, generate the green configuration space of the blue robot and red obstacle, and translate it to the obstacle position as follows:
+This program will first translate the blue robot position to the red obstacle, generate the green configuration space of the blue robot and red obstacle, and translate it to the red obstacle position as follows:
 ![alt text](Images/Minkowski_Sum_Final.png)
 
