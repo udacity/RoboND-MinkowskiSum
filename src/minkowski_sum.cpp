@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include "src/matplotlibcpp.h"
+#include "../lib/matplotlibcpp.h"
 #include <math.h>
 
 using namespace std;
@@ -165,7 +165,7 @@ void draw_shapes(vector<vector<double> > A, vector<vector<double> > B, vector<ve
     plot(C, "g-");
     
     //Save the image and close the plot
-    plt::save("./Images/Minkowski_Sum.png");
+    plt::save("../images/Minkowski_Sum.png");
     plt::clf();
 }
 
